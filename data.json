@@ -1,0 +1,34 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "name": "Robô Seguidor de Linha",
+      "votes": 0
+    },
+    {
+      "id": 2,
+      "name": "teste",
+      "votes": 1
+    },
+    {
+      "id": 3,
+      "name": "App de RA para Educação",
+      "votes": 0
+    },
+    {
+      "id": 4,
+      "name": "Sistema de Irrigação Inteligente",
+      "votes": 0
+    },
+    {
+      "id": 5,
+      "name": "Gerador de Energia Eólica Caseiro",
+      "votes": 2
+    },
+    {
+      "id": 6,
+      "name": "Plataforma E-learning Gamificada",
+      "votes": 0
+    }
+  ]
+}
