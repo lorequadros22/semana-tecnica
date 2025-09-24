@@ -17,7 +17,7 @@ const DATA_PATH = path.join(__dirname, "data.json");
 // Middlewares
 // Configura o CORS para permitir requisições apenas do seu site Netlify e localhost
 const allowedOrigins = [
-  'https://seu-app.netlify.app', // <-- SUBSTITUA PELA URL REAL DO SEU SITE NA NETLIFY
+  'semana-tecnica-votos.netlify.app', // <-- SUBSTITUA PELA URL REAL DO SEU SITE NA NETLIFY
   'http://localhost:5173',      // <-- Porta comum para dev (Vite)
   'http://127.0.0.1:5173'
 ];
@@ -97,4 +97,5 @@ app.post("/api/reset", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
+
 });
