@@ -2,32 +2,32 @@
   "projects": [
     {
       "id": 1,
-      "name": "Robô Seguidor de Linha",
+      "name": "Semana técnica-1",
       "votes": 0
     },
     {
       "id": 2,
-      "name": "teste",
+      "name": "Semana técnica-2",
       "votes": 0
     },
     {
       "id": 3,
-      "name": "App de RA para Educação",
+      "name": "Semana técnica-3",
       "votes": 0
     },
     {
       "id": 4,
-      "name": "Sistema de Irrigação Inteligente",
+      "name": "Semana técnica-4",
       "votes": 0
     },
     {
       "id": 5,
-      "name": "Gerador de Energia Eólica Caseiro",
+      "name": "Semana técnica-5",
       "votes": 0
     },
     {
       "id": 6,
-      "name": "Plataforma E-learning Gamificada",
+      "name": "Semana técnica-6",
       "votes": 0
     }
   ]
