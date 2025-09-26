@@ -17,62 +17,62 @@
     },
     {
       "id": 4,
-      "name": "Semana técnica-4",
-      "votes": 0
-    },
-    {
-      "id": 5,
       "name": "Semana técnica-D",
       "votes": 0
     },
     {
-      "id": 6,
+      "id": 5,
       "name": "Semana técnica-E",
       "votes": 0
     },
     {
-      "id": 7,
+      "id": 6,
       "name": "Semana técnica-F",
       "votes": 0
     },
     {
-      "id": 8,
+      "id": 7,
       "name": "Semana técnica-G",
       "votes": 0
     },
     {
-      "id": 9,
+      "id": 8,
       "name": "Semana técnica-H",
       "votes": 0
     },
     {
-      "id": 10,
-      "name": "Semana técnica-10",
-      "votes": 0
-    },
-    {
-      "id": 11,
+      "id": 9,
       "name": "Semana técnica-I",
       "votes": 0
     },
     {
-      "id": 12,
+      "id": 10,
       "name": "Semana técnica-J",
       "votes": 0
     },
     {
-      "id": 13,
+      "id": 11,
       "name": "Semana técnica-K",
       "votes": 0
     },
     {
-      "id": 14,
+      "id": 12,
       "name": "Semana técnica-L",
       "votes": 0
     },
     {
-      "id": 15,
+      "id": 13,
       "name": "Semana técnica-M",
+      "votes": 0
+    },
+    {
+      "id": 14,
+      "name": "Semana técnica-N",
+      "votes": 0
+    },
+    {
+      "id": 15,
+      "name": "Semana técnica-O",
       "votes": 0
     }
   ]
