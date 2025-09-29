@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Votação — Semana Técnica</title>
+  <style>
+    :root { font-family: system-ui, Arial, sans-serif; }
+    body { margin: 0; background: #ffffff; color: #0b0b0b; }
+    .container { max-width: 980px; margin: 32px auto; padding: 0 16px; }
+    .header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap: wrap;}
+    h1 { font-size: 1.6rem; margin: 0 0 8px; }
+    .sub { color:#555; margin: 0 0 12px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin-top:16px; }
+    .card { background:#dcdcdc; border:1px solid #e7e7ee; border-radius:16px; padding:16px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .titulo { font-weight: 600; margin: 0 0 8px; }
+    .votos { font-size:.95rem; color:#444; margin-bottom:10px; }
+    .btn { cursor:pointer; border:0; border-radius:12px; padding:10px 14px; font-weight:600; background:#2b0ee8; color:#fff; }
+    .btn[disabled] { opacity:.45; cursor:not-allowed; }
+    .ranking { display:grid; grid-template-columns:1.6fr 1fr; gap:12px; align-items:start; }
+    .painel { background:#ffffff; border:1px solid #e7e7ee; border-radius:16px; padding:16px; }
+    ol { margin:0; padding-left: 1.2rem; }
+    .top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .medal { font-size:1.1rem; }
+    .rodape { margin-top:20px; font-size:.9rem; color:#666; }
+    .linha { height:1px; background:#eee; margin:12px 0; }
+    .input-email { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    // import { h, render } from "https://esm.sh/preact@10.24.1";
+    // import { useEffect, useMemo, useState } from "https://esm.sh/preact@10.24.1/hooks";
+    import { h, render } from "https://cdn.skypack.dev/preact";
+    import { useEffect, useMemo, useState } from "https://cdn.skypack.dev/preact/hooks";
+
+    // ===== Config =====
+    const IS_LOCALHOST = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API = IS_LOCALHOST
+      ? "http://localhost:3000"
+      : "https://semana-tecnica-api.onrender.com"; // <-- CONFIRME SE ESSA É A URL CORRETA DO SEU BACKEND
+
+    // ===== Funções da API =====
+
+    async function apiGetProjects() {
+      const r = await fetch(`${API}/api/projects`);
+      if (!r.ok) throw new Error("Falha ao carregar projetos");
+      return r.json();
+    }
+
+    // ****** ALTERAÇÃO AQUI ******
+    // A função agora aceita 'id' e 'email'
+    async function apiVote(id, email) {
+      const r = await fetch(`${API}/api/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Envia ambos os campos no corpo da requisição
+        body: JSON.stringify({ id, email })
+      });
+
+      const data = await r.json();
+      // Se a resposta não for OK, o backend envia um erro (ex: e-mail já votou)
+      // Lançamos um erro com essa mensagem para exibi-la na tela
+      if (!r.ok) throw new Error(data.error || "Falha ao votar");
+      
+      return data;
+    }
+
+    async function apiReset() {
+      // Esta função continua igual, mas lembre-se que ela é desprotegida
+      const r = await fetch(`${API}/api/reset`, { method: "POST" });
+      if (!r.ok) throw new Error("Falha ao resetar");
+      return r.json();
+    }
+    
+    // Função para validar o formato do e-mail
+    function isValidEmail(email) {
+      return /^\S+@\S+\.\S+$/.test(email);
+    }
+
+    function App() {
+      const [projetos, setProjetos] = useState([]);
+      const [carregando, setCarregando] = useState(true);
+      const [mensagem, setMensagem] = useState("");
+      
+      // ****** NOVO ESTADO AQUI ******
+      // Estado para armazenar o e-mail digitado pelo usuário
+      const [email, setEmail] = useState("");
+
+      // Carrega projetos do backend (sem alterações)
+      useEffect(() => {
+        (async () => {
+          try {
+            setCarregando(true);
+            const list = await apiGetProjects();
+            setProjetos(list);
+          } catch (e) {
+            console.error(e);
+            setMensagem("Não foi possível carregar os projetos.");
+          } finally {
+            setCarregando(false);
+          }
+        })();
+      }, []);
+
+      // Lógica de ranking (sem alterações)
+      const top3 = useMemo(() => {
+        return [...projetos]
+          .sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name) || a.id - b.id)
+          .slice(0, 3);
+      }, [projetos]);
+      
+      // ****** FUNÇÃO DE VOTO MODIFICADA ******
+      async function votar(id) {
+        // Valida o e-mail antes de enviar para a API
+        if (!isValidEmail(email)) {
+          setMensagem("Por favor, digite um e-mail válido para votar.");
+          return;
+        }
+        setMensagem("");
+
+        try {
+          // Envia o id do projeto e o e-mail para a API
+          await apiVote(id, email);
+          
+          // Recarrega a lista de projetos para atualizar a contagem de votos
+          const list = await apiGetProjects();
+          setProjetos(list);
+          setMensagem("Voto registrado com sucesso!");
+        } catch (e) {
+          console.error(e);
+          // Exibe a mensagem de erro vinda diretamente do backend
+          setMensagem(`Erro: ${e.message}`);
+        }
+      }
+
+      // Função de reset (sem alterações na lógica principal)
+      async function resetar() {
+        if (!confirm("Zerar todos os votos no servidor?")) return;
+        try {
+          await apiReset();
+          const list = await apiGetProjects();
+          setProjetos(list);
+          setMensagem("Tudo zerado.");
+        } catch (e) {
+          setMensagem("Falha ao resetar.");
+        }
+      }
+
+      // Verifica se o e-mail é válido para habilitar/desabilitar os botões
+      const isEmailValido = isValidEmail(email);
+
+      return (
+        h("div", { class: "container" },
+          h("div", { class: "header" },
+            h("div", null,
+              h("h1", null, "Votação — Semana Técnica — Regente Feijó."),
+              h("p", { class: "sub" }, "Vote na melhor apresentação da semana técnica do Regente Feijó!")
+            )
+          ),
+
+          h("div", { class: "ranking" },
+            h("div", { class: "painel" },
+              h("div", { class: "top" },
+                h("h2", { style: "margin:0" }, "Top 3"),
+                h("span", { style: "font-size:.9rem;color:#666;" }, "Atualiza após cada voto")
+              ),
+              h("ol", null,
+                top3.map((p, i) =>
+                  h("li", { key: p.id, style: "margin:8px 0" },
+                    h("div", { class: "top" },
+                      h("div", null,
+                        h("span", { class: "medal" }, i===0?"🥇":i===1?"🥈":"🥉"), " ",
+                        h("strong", null, p.name)
+                      ),
+                      h("span", null, `${p.votes} voto${p.votes===1?"":"s"}`)
+                    )
+                  )
+                )
+              )
+            ),
+
+            // ****** PAINEL DE VOTO MODIFICADO ******
+            h("div", { class: "painel" },
+              h("h2", { style: "margin:0 0 8px" }, "Seu voto"),
+              h("p", { style: "margin:0; font-weight:600" }, "Digite seu e-mail para poder votar:"),
+              // Novo campo de input para o e-mail
+              h("input", {
+                class: "input-email",
+                type: "email",
+                placeholder: "seu.email@exemplo.com",
+                value: email,
+                // Atualiza o estado 'email' a cada letra digitada
+                onInput: (e) => setEmail(e.target.value)
+              }),
+              h("div", { class: "linha" }),
+              !isEmailValido && email.length > 0 && h("p", { style: "color:#a30000;font-weight:600; margin:0;" }, "Formato de e-mail inválido."),
+              isEmailValido && h("p", { style: "color:#166534;font-weight:600; margin:0;" }, "E-mail válido. Você pode votar.")
+            )
+          ),
+
+          carregando
+            ? h("p", null, "Carregando projetos…")
+            // ****** GRID DE PROJETOS MODIFICADO ******
+            : h("div", { class: "grid" },
+                [...projetos].sort((a,b)=> a.name.localeCompare(b.name)).map(p =>
+                  h("div", { class: "card", key: p.id },
+                    h("h3", { class: "titulo" }, p.name),
+                    h("div", { class: "votos" }, `Votos: ${p.votes}`),
+                    // Botão é desabilitado se o e-mail não for válido
+                    h("button", {
+                      class: "btn",
+                      disabled: !isEmailValido,
+                      onClick: () => votar(p.id)
+                    }, "Votar com este e-mail")
+                  )
+                )
+              ),
+          
+          h("p", { class: "rodape" },
+            "Desenvolvido por: Loreanne de Quadros, Talita Souza, Dalton, Richardy e Brenda - 2025 - 3B. ",
+            "Auxiliados pelos professores Lucas Martini - Backend e Henrique de Padua - PDS"
+          ),
+          mensagem && h("p", { class: "rodape", style: "color:#444; font-weight: bold;" }, mensagem)
+        )
+      );
+    }
+
+    render(h(App), document.getElementById("app"));
+  </script>
+</body>
+</html>
