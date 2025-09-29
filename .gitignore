@@ -1,5 +1,13 @@
-    # Ignore the entire node_modules directory
-    node_modules/
+# Arquivo de variáveis de ambiente - NUNCA ENVIAR PARA O GITHUB!
+.env
 
-    # Ignore a specific file
-    .env
+# Pasta de dependências do Node.js (será recriada com 'npm install')
+node_modules
+
+# Arquivos de log
+npm-debug.log*
+*.log
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
