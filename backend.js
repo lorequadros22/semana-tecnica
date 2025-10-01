@@ -67,59 +67,70 @@ app.get("/api/projects", async (req, res) => {
   }
 });
 
-// ****** GRANDES ALTERAÇÕES AQUI ******
-// API: Votar em um projeto usando e-mail
+// index.js (arquivo do backend)
+
+// API: Votar em um projeto usando e-mail (VERSÃO CORRIGIDA)
 app.post("/api/vote", async (req, res) => {
-  // Agora esperamos 'id' e 'email' no corpo da requisição
   const { id, email } = req.body;
 
-  // Validação dos campos recebidos
   if (typeof id !== "number") {
     return res.status(400).json({ error: "Campo 'id' numérico é obrigatório." });
   }
-  if (!email || typeof email !== 'string') {
-      return res.status(400).json({ error: "Campo 'email' é obrigatório." });
-  }
-  // Validação simples do formato do e-mail
-  if (!/^\S+@\S+\.\S+$/.test(email)) {
-      return res.status(400).json({ error: "Formato de e-mail inválido." });
+  if (!email || typeof email !== 'string' || !/^\S+@\S+\.\S+$/.test(email)) {
+    return res.status(400).json({ error: "Campo 'email' é obrigatório e precisa ser válido." });
   }
 
   try {
-    // 1. Verifica se este E-MAIL já votou neste projeto
-    const existingVote = await VoteLog.findOne({ projectId: id, email: email });
-    if (existingVote) {
-      return res.status(403).json({ error: "Este e-mail já votou neste projeto." });
-    }
-
-    // 2. Encontra o projeto e incrementa o voto (operação atômica)
-    const updatedProject = await Project.findOneAndUpdate(
-      { id: id },
-      { $inc: { votes: 1 } },
-      { new: true }
-    );
-
-    if (!updatedProject) {
-      return res.status(404).json({ error: "Projeto não encontrado." });
-    }
-
-    // 3. Registra o voto no log com o e-mail
+    // ETAPA 1: TENTAR SALVAR O REGISTRO DE VOTO PRIMEIRO.
+    // Esta é a nossa operação "atômica" de verificação.
+    // Se o par (projectId, email) já existir, o .save() vai falhar
+    // por causa do índice único, e o código pulará para o bloco CATCH.
     const newVoteLog = new VoteLog({ projectId: id, email: email });
     await newVoteLog.save();
 
+    // ETAPA 2: SE O .save() ACIMA FUNCIONOU, ENTÃO O VOTO É ÚNICO.
+    // Só agora nós podemos incrementar a contagem de votos com segurança.
+    const updatedProject = await Project.findOneAndUpdate(
+      { id: id },
+      { $inc: { votes: 1 } },
+      { new: true } // Retorna o documento atualizado
+    );
+
+    if (!updatedProject) {
+      // Caso raro: se o projeto for deletado entre as operações.
+      // Podemos até remover o log que acabamos de criar para consistência.
+      await VoteLog.deleteOne({ _id: newVoteLog._id });
+      return res.status(404).json({ error: "Projeto não encontrado." });
+    }
+
+    // ETAPA 3: Retornar sucesso.
     res.json({ ok: true, project: updatedProject });
 
   } catch (error) {
-      if (error.code === 11000) { // Erro de duplicidade do banco de dados
-          return res.status(403).json({ error: "Este e-mail já votou neste projeto." });
-      }
-      console.error("Erro ao votar:", error);
-      res.status(500).json({ error: "Ocorreu um erro ao processar seu voto." });
+    // O erro mais comum aqui será o de chave duplicada (código 11000).
+    if (error.code === 11000) {
+      return res.status(403).json({ error: "Este e-mail já votou neste projeto." });
+    }
+    
+    // Lidar com outros erros inesperados.
+    console.error("Erro ao votar:", error);
+    res.status(500).json({ error: "Ocorreu um erro ao processar seu voto." });
   }
 });
 
-// API: Resetar todos os votos (sem alterações na lógica)
+// index.js (backend)
+
+// Defina uma chave secreta. O ideal é colocá-la no arquivo .env
+const RESET_SECRET_KEY = process.env.RESET_SECRET_KEY;
+
 app.post("/api/reset", async (req, res) => {
+  // Exige que a chave secreta seja enviada no corpo da requisição
+  const { secret } = req.body;
+
+  if (secret !== RESET_SECRET_KEY) {
+    return res.status(403).json({ error: "Acesso não autorizado." });
+  }
+
   try {
       await Project.updateMany({}, { $set: { votes: 0 } });
       await VoteLog.deleteMany({});
