@@ -14,6 +14,7 @@
     .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin-top:16px; }
     .card { background:#dcdcdc; border:1px solid #e7e7ee; border-radius:16px; padding:16px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
     .titulo { font-weight: 600; margin: 0 0 8px; }
+    .descricao { font-size: 1rem; font-weight: 400; margin: 0 0 10px;}
     .votos { font-size:.95rem; color:#444; margin-bottom:10px; }
     .btn { cursor:pointer; border:0; border-radius:12px; padding:10px 14px; font-weight:600; background:#2b0ee8; color:#fff; }
     .btn[disabled] { opacity:.45; cursor:not-allowed; }
@@ -208,6 +209,7 @@
                 [...projetos].sort((a,b)=> a.name.localeCompare(b.name)).map(p =>
                   h("div", { class: "card", key: p.id },
                     h("h3", { class: "titulo" }, p.name),
+                    h("p", { class:"descricao"}, p.description),
                     h("div", { class: "votos" }, `Votos: ${p.votes}`),
                     // Botão é desabilitado se o e-mail não for válido
                     h("button", {
@@ -220,7 +222,7 @@
               ),
           
           h("p", { class: "rodape" },
-            "Desenvolvido por: Loreanne de Quadros, Talita Souza, Dalton, Richardy e Brenda - 2025 - 3B. ",
+            "Desenvolvido por: Loreanne de Quadros e Talita Souza - 2025 - 3B. ",
             "Auxiliados pelos professores Lucas Martini - Backend e Henrique de Padua - PDS"
           ),
           mensagem && h("p", { class: "rodape", style: "color:#444; font-weight: bold;" }, mensagem)
